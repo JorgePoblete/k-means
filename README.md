@@ -1,2 +1,2 @@
-# k-means
-k-means algorithm
+# Kmeans
+K-means algorithm on c++

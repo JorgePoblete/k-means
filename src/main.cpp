@@ -33,13 +33,8 @@ int main(int argc, char** argv)
 	MatrixXd means = data.block(0, 0, k, d);
 
 	Utils utils;
-	kmeans kmeans(data, means, t, b);
+	kmeans kmeans;
 
-	for (int i=0; i<k;i++)
-	{
-		for (int j=0; j<d; j++)
-			std::cout << means(i, j) << " ";
-		std::cout << std::endl;
-	}
+	std::cout << kmeans.cluster(data, means, t, b) << std::endl;
 	return 0;
 }

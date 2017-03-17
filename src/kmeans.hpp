@@ -2,8 +2,8 @@
 #define KMEANS_H_
 
 #include <iostream>
-#include <cmath>
 #include <Eigen/Dense>
+#include <cmath>
 #include <omp.h>
 #include "utils.hpp"
 
@@ -15,11 +15,11 @@ class kmeans
 		int k, n, d;
 		VectorXd membership, counter;
 		MatrixXd points, centroids, mini_batch;
-		kmeans(MatrixXd points, MatrixXd centroids, int t, int b);
+		kmeans();
+		MatrixXd cluster(MatrixXd points, MatrixXd centroids, int t, int b);
 	private:
-		int assign_step(MatrixXd points, MatrixXd centroids);
-		int asignar(VectorXd point, MatrixXd centroids);
-		double euclidian_distance(VectorXd point, VectorXd centroid);
-		void update_step(MatrixXd points, MatrixXd centroids);
+		void assign_step(MatrixXd points);
+		int asignar(RowVectorXd point);
+		void update_step(MatrixXd points);
 };
 #endif

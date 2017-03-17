@@ -1,71 +1,50 @@
 #include "kmeans.hpp"
 
-kmeans::kmeans(MatrixXd points, MatrixXd centroids, int t, int b)
+kmeans::kmeans(){}
+
+MatrixXd kmeans::cluster(MatrixXd points, MatrixXd centroids, int t, int b)
 {
 	Utils utils;
 	membership = VectorXd::Zero(b);
 	counter = VectorXd::Zero(b);
 
 	mini_batch = MatrixXd::Zero(b, points.cols());
+	this->centroids = centroids.block(0,0, centroids.rows(), centroids.cols());
 
 	utils.seed_random();
 
-	int changed;
 	do
 	{
 		//mini-batch creation loop
 		for (int i=0; i<b; i++)
 		{
-			int row = utils.get_random() * n;
+			int row = utils.get_random() * points.rows();
 			mini_batch.row(i) = points.row(row);
 		}
-		changed = assign_step(mini_batch, centroids);
-		update_step(mini_batch, centroids);
+		assign_step(mini_batch);
+		update_step(mini_batch);
 		t--;
-	} while (t > 0 && changed > 0);
+	} while (t > 0);
+	return this->centroids;
 }
 
-int kmeans::assign_step(MatrixXd mini_batch, MatrixXd centroids)
+void kmeans::assign_step(MatrixXd mini_batch)
 {
-	int changed = 0, kmin;
-
-	#pragma omp parallel for schedule(static) private(kmin)
+	#pragma omp parallel for schedule(static)
 	for (int i=0; i<mini_batch.rows(); i++)
 	{
-		kmin = asignar(mini_batch.row(i), centroids);
-		if (membership(i) != kmin)
-			#pragma omp atomic
-			changed = changed + 1;
-		membership(i) = kmin;
+		membership(i) = asignar(mini_batch.row(i));
 	}
-
-	return changed;
 }
 
-int kmeans::asignar(VectorXd point, MatrixXd centroids)
+int kmeans::asignar(RowVectorXd point)
 {
-	int kmin;
-	double dmin,dist;
-	dmin = 99e99;
-	kmin = 0;
-	for (int c=0; c<centroids.rows(); c++)
-	{
-		dist = euclidian_distance(point, centroids.row(c));
-		if (dmin > dist)
-		{
-			dmin = dist;
-			kmin = c;
-		}
-	}
-	return kmin;
+	MatrixXf::Index index;
+	(centroids.rowwise() - point).rowwise().norm().minCoeff(&index);
+	return index;
 }
 
-double kmeans::euclidian_distance(VectorXd point, VectorXd centroid)
-{
-	return (point - centroid).squaredNorm();
-}
-
-void kmeans::update_step(MatrixXd points, MatrixXd centroids)
+void kmeans::update_step(MatrixXd points)
 {
 	double learning_rate;
 	int c;
